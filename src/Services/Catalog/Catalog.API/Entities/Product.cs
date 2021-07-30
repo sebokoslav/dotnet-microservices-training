@@ -4,7 +4,7 @@ namespace Catalog.API.Entities
 {
     public class Product
     {
-        [BsonId]
+        [BsonId] // TODO: Tightly coupled to MongoDB! Repository pattern makes no sense with this
         [BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
         public string Id { get; set; }
         [BsonElement("Name")] //isn't needed if you want to keep the column name same as prop name
