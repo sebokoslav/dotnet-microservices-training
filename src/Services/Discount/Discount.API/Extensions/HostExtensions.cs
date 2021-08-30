@@ -25,14 +25,44 @@ namespace Discount.API.Extensions
                     using var connection = new NpgsqlConnection
                         (configuration.GetValue<string>("DatabaseSettings:ConnectionString"));
                     connection.Open();
-                    
-                }
-                catch (Exception)
-                {
 
-                    throw;
+                    using var command = new NpgsqlCommand
+                    {
+                        Connection = connection
+                    };
+
+                    //TODO: database specific stuff is not decoupled from the application logic should be moved to repository or a service
+                    // or rewrite HostExtensions when database engine changes
+                    command.CommandText = "DROP TABLE IF EXISTS Coupon"; 
+                    command.ExecuteNonQuery();
+
+                    command.CommandText = @"CREATE TABLE Coupon(Id SERIAL PRIMARY KEY, 
+                                                                ProductName VARCHAR(24) NOT NULL,
+                                                                Description TEXT,
+                                                                Amount INT)";
+                    command.ExecuteNonQuery();
+
+                    command.CommandText = "INSERT INTO Coupon(ProductName, Description, Amount) VALUES('IPhone X', 'IPhone Discount', 150);";
+                    command.ExecuteNonQuery();
+
+                    command.CommandText = "INSERT INTO Coupon(ProductName, Description, Amount) VALUES('Samsung 10', 'Samsung Discount', 100);";
+                    command.ExecuteNonQuery();
+
+                    logger.LogInformation("Migrated postresql database.");
+
                 }
-                return null; //TODO: finish migration
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "An error occurred while migrating the postresql database");
+
+                    if (retryForAvailability < 50)
+                    {
+                        retryForAvailability++;
+                        System.Threading.Thread.Sleep(2000);
+                        MigrateDatabase<TContext>(host, retryForAvailability);
+                    }
+                }
+                return host;
             }
         }
     }
