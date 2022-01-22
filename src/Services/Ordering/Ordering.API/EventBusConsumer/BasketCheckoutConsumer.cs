@@ -16,10 +16,11 @@ namespace Ordering.API.EventBusConsumer
         private readonly ILogger<BasketCheckoutConsumer> _logger;
 
 
-        public BasketCheckoutConsumer(IMapper mapper, IMediator mediator)
+        public BasketCheckoutConsumer(IMapper mapper, IMediator mediator, ILogger<BasketCheckoutConsumer> logger)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
         public async Task Consume(ConsumeContext<BasketCheckoutEvent> context)
         {
